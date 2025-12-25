@@ -1,0 +1,112 @@
+import React, { useState } from 'react';
+import { X, Mail, Lock, User, MapPin, CheckSquare, Square } from 'lucide-react';
+import { NEPAL_CITIES } from '../constants';
+
+interface AuthModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onLogin: () => void;
+}
+
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [agreed, setAgreed] = useState(false);
+  
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLogin && !agreed) return;
+    // In a real app, Supabase auth logic goes here
+    onLogin();
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+        
+        {/* Header */}
+        <div className="relative h-32 bg-hemp-600 flex items-center justify-center">
+          <button onClick={onClose} className="absolute top-4 right-4 text-white/80 hover:text-white">
+            <X size={24} />
+          </button>
+          <div className="text-center">
+             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg">
+                <span className="text-3xl">🌿</span>
+             </div>
+             <h2 className="text-white font-bold text-xl">Nepal Hemp Community</h2>
+          </div>
+        </div>
+
+        {/* Form */}
+        <div className="p-8">
+          <div className="flex space-x-4 mb-6">
+            <button 
+              onClick={() => setIsLogin(true)}
+              className={`flex-1 pb-2 text-center font-medium border-b-2 transition-colors ${isLogin ? 'border-hemp-600 text-hemp-600' : 'border-transparent text-gray-400'}`}
+            >
+              Login
+            </button>
+            <button 
+              onClick={() => setIsLogin(false)}
+              className={`flex-1 pb-2 text-center font-medium border-b-2 transition-colors ${!isLogin ? 'border-hemp-600 text-hemp-600' : 'border-transparent text-gray-400'}`}
+            >
+              Sign Up
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-3">
+                 <div className="relative">
+                    <User className="absolute left-3 top-3 text-gray-400" size={18} />
+                    <input type="text" placeholder="Username" className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" required />
+                 </div>
+                 <div className="relative">
+                    <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
+                    <select className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none bg-white text-gray-600" required>
+                      <option value="">Select City in Nepal</option>
+                      {NEPAL_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
+                    </select>
+                 </div>
+              </div>
+            )}
+            
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+              <input type="email" placeholder="Email Address" className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" required />
+            </div>
+            
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+              <input type="password" placeholder="Password" className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" required />
+            </div>
+
+            {!isLogin && (
+              <div 
+                className="flex items-start space-x-2 cursor-pointer group"
+                onClick={() => setAgreed(!agreed)}
+              >
+                <div className={`mt-0.5 ${agreed ? 'text-hemp-600' : 'text-gray-400'}`}>
+                  {agreed ? <CheckSquare size={20} /> : <Square size={20} />}
+                </div>
+                <p className="text-xs text-gray-500 leading-snug">
+                  I confirm I am over 18 years of age and I agree to the <span className="text-hemp-600 underline">Terms of Service</span>. I understand this platform is for educational and community purposes within Nepal's legal framework.
+                </p>
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              disabled={!isLogin && !agreed}
+              className={`w-full py-3 rounded-lg font-bold text-white transition-all ${(!isLogin && !agreed) ? 'bg-gray-300 cursor-not-allowed' : 'bg-hemp-600 hover:bg-hemp-700 shadow-md hover:shadow-lg'}`}
+            >
+              {isLogin ? 'Login' : 'Create Account'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
