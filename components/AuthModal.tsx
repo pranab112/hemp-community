@@ -1,25 +1,63 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, MapPin, CheckSquare, Square } from 'lucide-react';
+import { X, Mail, Lock, User, MapPin, CheckSquare, Square, AlertCircle, Loader } from 'lucide-react';
 import { NEPAL_CITIES } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: () => void;
+  onLogin?: () => void;
 }
 
-export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin: onLoginSuccess }) => {
+  const { login, register } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [agreed, setAgreed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Form State
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [location, setLocation] = useState('');
   
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isLogin && !agreed) return;
-    // In a real app, Supabase auth logic goes here
-    onLogin();
-    onClose();
+    setError(null);
+
+    if (!isLogin && !agreed) {
+        setError("Please agree to the terms.");
+        return;
+    }
+
+    setIsLoading(true);
+    try {
+        if (isLogin) {
+            await login(email, password);
+        } else {
+            await register({
+                email,
+                password_hash: password,
+                username,
+                location,
+                is_verified_age: true // In a real app, this would be more rigorous
+            });
+        }
+        if (onLoginSuccess) onLoginSuccess();
+        onClose();
+        // Reset form
+        setEmail('');
+        setPassword('');
+        setUsername('');
+        setLocation('');
+    } catch (err: any) {
+        setError(err.message || 'Authentication failed');
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -43,29 +81,48 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }
         <div className="p-8">
           <div className="flex space-x-4 mb-6">
             <button 
-              onClick={() => setIsLogin(true)}
+              onClick={() => { setIsLogin(true); setError(null); }}
               className={`flex-1 pb-2 text-center font-medium border-b-2 transition-colors ${isLogin ? 'border-hemp-600 text-hemp-600' : 'border-transparent text-gray-400'}`}
             >
               Login
             </button>
             <button 
-              onClick={() => setIsLogin(false)}
+              onClick={() => { setIsLogin(false); setError(null); }}
               className={`flex-1 pb-2 text-center font-medium border-b-2 transition-colors ${!isLogin ? 'border-hemp-600 text-hemp-600' : 'border-transparent text-gray-400'}`}
             >
               Sign Up
             </button>
           </div>
 
+          {error && (
+            <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-center">
+                <AlertCircle size={16} className="mr-2" />
+                {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-3">
                  <div className="relative">
                     <User className="absolute left-3 top-3 text-gray-400" size={18} />
-                    <input type="text" placeholder="Username" className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" required />
+                    <input 
+                        type="text" 
+                        placeholder="Username" 
+                        value={username}
+                        onChange={e => setUsername(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" 
+                        required 
+                    />
                  </div>
                  <div className="relative">
                     <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
-                    <select className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none bg-white text-gray-600" required>
+                    <select 
+                        value={location}
+                        onChange={e => setLocation(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none bg-white text-gray-600" 
+                        required
+                    >
                       <option value="">Select City in Nepal</option>
                       {NEPAL_CITIES.map(city => <option key={city} value={city}>{city}</option>)}
                     </select>
@@ -75,12 +132,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }
             
             <div className="relative">
               <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input type="email" placeholder="Email Address" className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" required />
+              <input 
+                  type="email" 
+                  placeholder="Email Address" 
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" 
+                  required 
+              />
             </div>
             
             <div className="relative">
               <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
-              <input type="password" placeholder="Password" className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" required />
+              <input 
+                  type="password" 
+                  placeholder="Password" 
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-hemp-500 focus:border-transparent outline-none" 
+                  required 
+              />
             </div>
 
             {!isLogin && (
@@ -99,9 +170,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }
 
             <button 
               type="submit" 
-              disabled={!isLogin && !agreed}
-              className={`w-full py-3 rounded-lg font-bold text-white transition-all ${(!isLogin && !agreed) ? 'bg-gray-300 cursor-not-allowed' : 'bg-hemp-600 hover:bg-hemp-700 shadow-md hover:shadow-lg'}`}
+              disabled={isLoading || (!isLogin && !agreed)}
+              className={`w-full py-3 rounded-lg font-bold text-white transition-all flex justify-center items-center ${(!isLogin && !agreed) ? 'bg-gray-300 cursor-not-allowed' : 'bg-hemp-600 hover:bg-hemp-700 shadow-md hover:shadow-lg'}`}
             >
+              {isLoading && <Loader className="animate-spin mr-2" size={20} />}
               {isLogin ? 'Login' : 'Create Account'}
             </button>
           </form>

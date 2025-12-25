@@ -1,4 +1,4 @@
-import { Post, Product, User, PostCategory } from './types';
+import { Post, Product, User, PostCategory, Course, CommunityVote } from './types';
 
 export const NEPAL_CITIES = [
   'Kathmandu',
@@ -38,6 +38,7 @@ export const MOCK_POSTS: Post[] = [
     image_url: 'https://picsum.photos/seed/hemp1/800/400',
     category: PostCategory.EDUCATION,
     likes: 45,
+    liked_by: [],
     comment_count: 12,
     created_at: '2 hours ago',
     is_sponsored: false
@@ -51,6 +52,7 @@ export const MOCK_POSTS: Post[] = [
     image_url: 'https://picsum.photos/seed/dog1/800/400',
     category: PostCategory.ANIMAL_WELFARE,
     likes: 128,
+    liked_by: [],
     comment_count: 34,
     created_at: '5 hours ago',
     is_sponsored: false
@@ -63,6 +65,7 @@ export const MOCK_POSTS: Post[] = [
     content: 'Reviewing the best local brands. Check the marketplace for links!',
     category: PostCategory.PRODUCTS,
     likes: 89,
+    liked_by: [],
     comment_count: 5,
     created_at: '1 day ago',
     is_sponsored: true
@@ -124,4 +127,65 @@ export const LEADERBOARD = [
   { id: '3', username: 'GreenTara', points: 980, avatar: 'https://picsum.photos/seed/l3/100' },
   { id: '4', username: 'YetiKush', points: 850, avatar: 'https://picsum.photos/seed/l4/100' },
   { id: '5', username: 'BuddhaHerbs', points: 720, avatar: 'https://picsum.photos/seed/l5/100' },
+];
+
+export const MOCK_COURSES: Course[] = [
+  {
+    id: 'c1',
+    title: 'Intro to Hemp Cultivation in Nepal',
+    description: 'Learn the basics of soil, climate, and legal framework for hemp farming.',
+    modules_count: 5,
+    points_reward: 100,
+    difficulty: 'Beginner',
+    image_url: 'https://picsum.photos/seed/course1/400/200'
+  },
+  {
+    id: 'c2',
+    title: 'Sustainable Harvesting Techniques',
+    description: 'Maximize yield while protecting the environment. Traditional vs Modern methods.',
+    modules_count: 3,
+    points_reward: 150,
+    difficulty: 'Intermediate',
+    image_url: 'https://picsum.photos/seed/course2/400/200'
+  },
+  {
+    id: 'c3',
+    title: 'Crypto 101: Web3 for Farmers',
+    description: 'Understand how blockchain can revolutionize agricultural supply chains.',
+    modules_count: 4,
+    points_reward: 200,
+    difficulty: 'Beginner',
+    image_url: 'https://picsum.photos/seed/course3/400/200'
+  }
+];
+
+export const MOCK_VOTES: CommunityVote[] = [
+  {
+    id: 'v1',
+    title: 'Should we prioritize an Android App?',
+    description: 'We have limited resources. Should we focus on a native Android app next quarter?',
+    options: [
+      { id: 'opt1', label: 'Yes, absolutely', votes: 145 },
+      { id: 'opt2', label: 'No, improve web first', votes: 89 },
+      { id: 'opt3', label: 'Abstain', votes: 12 }
+    ],
+    endDate: '2024-12-31',
+    voted_users: [],
+    status: 'active',
+    category: 'Feature'
+  },
+  {
+    id: 'v2',
+    title: 'Charity Selection: Q1 2025',
+    description: 'Which animal shelter should receive our quarterly hemp points donation?',
+    options: [
+      { id: 'opt1', label: 'Kathmandu Animal Treatment Centre', votes: 230 },
+      { id: 'opt2', label: 'Sneha Care', votes: 210 },
+      { id: 'opt3', label: 'Street Dog Care', votes: 180 }
+    ],
+    endDate: '2024-11-30',
+    voted_users: [],
+    status: 'active',
+    category: 'Charity'
+  }
 ];

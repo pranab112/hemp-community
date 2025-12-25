@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Product } from '../types';
 import { ShoppingBag, Star, ExternalLink } from 'lucide-react';
+import { db } from '../services/db';
+import { useAuth } from '../contexts/AuthContext';
 
 interface MarketplaceProps {
   products: Product[];
 }
 
-export const Marketplace: React.FC<MarketplaceProps> = ({ products }) => {
+export const Marketplace: React.FC<MarketplaceProps> = () => {
+  const { user } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      const data = await db.getProducts();
+      setProducts(data);
+      setLoading(false);
+    };
+    loadProducts();
+  }, []);
+
+  const handleProductClick = async (productId: string, link: string) => {
+    await db.trackAffiliateClick(productId, user?.id);
+    window.open(link, '_blank');
+  };
+
+  if (loading) return <div className="p-10 text-center text-gray-500">Loading products...</div>;
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-hemp-600 to-hemp-800 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
@@ -24,9 +46,9 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ products }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
         {products.map((product) => (
-          <div key={product.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
-            <div className="relative h-48">
-              <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" />
+          <div key={product.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col group">
+            <div className="relative h-48 overflow-hidden">
+              <img src={product.image_url} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               {product.is_featured && (
                 <span className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded">
                   FEATURED
@@ -47,6 +69,9 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ products }) => {
                 <span className="text-xs font-medium text-gray-600">{product.rating}</span>
                 <span className="text-gray-300 mx-1">|</span>
                 <span className="text-xs text-gray-500">Verified Seller</span>
+                {product.clicks && product.clicks > 10 && (
+                   <span className="ml-auto text-xs text-red-500 font-bold">🔥 Hot</span>
+                )}
               </div>
 
               <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-1">{product.description}</p>
@@ -55,13 +80,13 @@ export const Marketplace: React.FC<MarketplaceProps> = ({ products }) => {
                 <span className="text-lg font-bold text-hemp-700">
                   {product.currency} {product.price.toLocaleString()}
                 </span>
-                <a 
-                  href={product.affiliate_link}
+                <button 
+                  onClick={() => handleProductClick(product.id, product.affiliate_link)}
                   className="flex items-center space-x-1 bg-hemp-600 hover:bg-hemp-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
                 >
                   <span>Buy Now</span>
                   <ExternalLink size={14} />
-                </a>
+                </button>
               </div>
             </div>
           </div>
